@@ -1,0 +1,191 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+  "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
+  "files": {
+    "includes": ["src/**/*.ts"]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto",
+    "useEditorconfig": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "complexity": {
+        "noAdjacentSpacesInRegex": "error",
+        "noExtraBooleanCast": "error",
+        "noUselessCatch": "error",
+        "noUselessEscapeInRegex": "error"
+      },
+      "correctness": {
+        "noConstAssign": "error",
+        "noConstantCondition": "error",
+        "noEmptyCharacterClassInRegex": "error",
+        "noEmptyPattern": "error",
+        "noGlobalObjectCalls": "error",
+        "noInvalidBuiltinInstantiation": "error",
+        "noInvalidConstructorSuper": "error",
+        "noNonoctalDecimalEscape": "error",
+        "noPrecisionLoss": "error",
+        "noSelfAssign": "error",
+        "noSetterReturn": "error",
+        "noSwitchDeclarations": "error",
+        "noUndeclaredVariables": "error",
+        "noUnreachable": "error",
+        "noUnreachableSuper": "error",
+        "noUnsafeFinally": "error",
+        "noUnsafeOptionalChaining": "error",
+        "noUnusedLabels": "error",
+        "noUnusedPrivateClassMembers": "error",
+        "noUnusedVariables": "error",
+        "useIsNan": "error",
+        "useValidForDirection": "error",
+        "useValidTypeof": "error",
+        "useYield": "error"
+      },
+      "style": { "useBlockStatements": "off" },
+      "suspicious": {
+        "noAsyncPromiseExecutor": "error",
+        "noCatchAssign": "error",
+        "noClassAssign": "error",
+        "noCompareNegZero": "error",
+        "noControlCharactersInRegex": "error",
+        "noDebugger": "error",
+        "noDuplicateCase": "error",
+        "noDuplicateClassMembers": "error",
+        "noDuplicateElseIf": "error",
+        "noDuplicateObjectKeys": "error",
+        "noDuplicateParameters": "error",
+        "noEmptyBlockStatements": "error",
+        "noFallthroughSwitchClause": "error",
+        "noFunctionAssign": "error",
+        "noGlobalAssign": "error",
+        "noImportAssign": "error",
+        "noIrregularWhitespace": "error",
+        "noMisleadingCharacterClass": "error",
+        "noPrototypeBuiltins": "error",
+        "noRedeclare": "error",
+        "noShadowRestrictedNames": "error",
+        "noSparseArray": "error",
+        "noUnsafeNegation": "error",
+        "noWith": "error",
+        "useGetterReturn": "error"
+      }
+    },
+    "includes": ["**", "!dist/**/*", "!coverage/**/*", "!node_modules/**/*", "!*.d.ts"]
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "asNeeded",
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto",
+      "bracketSpacing": true
+    }
+  },
+  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "overrides": [
+    {
+      "includes": ["**/*.ts", "**/*.tsx"],
+      "javascript": {
+        "globals": [
+          "require",
+          "console",
+          "__filename",
+          "module",
+          "global",
+          "process",
+          "Buffer",
+          "__dirname",
+          "setInterval",
+          "clearInterval",
+          "clearTimeout",
+          "setTimeout"
+        ]
+      },
+      "linter": {
+        "rules": {
+          "complexity": { "noUselessTypeConstraint": "error" },
+          "correctness": { "noUnusedVariables": "error" },
+          "style": {
+            "noCommonJs": "error",
+            "noNamespace": "error",
+            "useArrayLiterals": "error",
+            "useAsConstAssertion": "error",
+            "useConst": "error"
+          },
+          "suspicious": {
+            "noConsole": "off",
+            "noExplicitAny": "warn",
+            "noExtraNonNullAssertion": "error",
+            "noMisleadingInstantiator": "error",
+            "noUnsafeDeclarationMerging": "error",
+            "noVar": "error",
+            "useNamespaceKeyword": "error"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.js", "**/*.mjs", "**/*.cjs"],
+      "javascript": {
+        "globals": ["require", "console", "module", "global", "__filename", "process", "__dirname", "exports"]
+      }
+    },
+    {
+      "includes": ["tests/**/*", "**/*.test.ts", "**/*.spec.ts"],
+      "javascript": {
+        "globals": [
+          "afterAll",
+          "console",
+          "setTimeout",
+          "Buffer",
+          "describe",
+          "expect",
+          "process",
+          "setInterval",
+          "it",
+          "beforeEach",
+          "afterEach",
+          "beforeAll",
+          "clearTimeout",
+          "clearInterval"
+        ]
+      },
+      "linter": {
+        "rules": {
+          "style": { "useConst": "error" },
+          "suspicious": { "noConsole": "off", "noExplicitAny": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["*.json"],
+      "formatter": { "indentWidth": 2, "lineWidth": 120 }
+    },
+    { "includes": ["*.md"], "formatter": { "lineWidth": 100 } },
+    {
+      "includes": ["*.yml"],
+      "javascript": { "formatter": { "quoteStyle": "double" } },
+      "formatter": { "indentWidth": 2 }
+    }
+  ],
+  "assist": {
+    "enabled": true,
+    "actions": { "source": { "organizeImports": "on" } }
+  }
+}

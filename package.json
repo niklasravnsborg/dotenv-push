@@ -1,0 +1,42 @@
+{
+  "name": "dotenv-push",
+  "version": "0.1.0",
+  "description": "CLI tool to push environment variables to cloud providers",
+  "keywords": [
+    "dotenv",
+    "environment",
+    "variables",
+    "vercel",
+    "deployment",
+    "cloud",
+    "push"
+  ],
+  "author": "Niklas Ravnsborg",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "dotenv-push": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir=dist --target=node --format=esm --banner:js=\"#!/usr/bin/env node\"",
+    "dev": "bun src/index.ts",
+    "start": "node dist/index.js",
+    "check": "biome check .",
+    "check:fix": "biome check --fix .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src/"
+  },
+  "dependencies": {
+    "@vercel/sdk": "^1.5.1",
+    "dotenv": "^16.4.7",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.1.4",
+    "@types/node": "^22.9.0"
+  }
+}

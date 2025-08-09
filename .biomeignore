@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+coverage/
+
+# Generated files
+*.d.ts
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# Cache directories
+.npm
+.eslintcache
+
+# Lock files (keep them as-is)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Temp directories
+.tmp/
+.temp/
+
