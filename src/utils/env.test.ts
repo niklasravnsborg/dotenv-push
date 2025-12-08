@@ -1,18 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import * as dotenv from 'dotenv';
 import { createTestEnvData, setupTestEnv } from '../test-utils/test-helpers.js';
 import type { MockDotenvParse } from '../types/mocks.js';
 import { loadEnvVars, parseEnvFromStdin } from './env.js';
 
-await vi.module('node:fs', () => ({
-  readFileSync: vi.fn(),
+await mock.module('node:fs', () => ({
+  readFileSync: mock(),
 }));
-await vi.module('dotenv', () => ({
-  parse: vi.fn(),
+await mock.module('dotenv', () => ({
+  parse: mock(),
 }));
 
-const mockReadFileSync = readFileSync as unknown as ReturnType<typeof vi.fn>;
+const mockReadFileSync = readFileSync as unknown as ReturnType<typeof mock>;
 const mockParse = dotenv.parse as unknown as MockDotenvParse;
 
 describe('Environment Utils', () => {

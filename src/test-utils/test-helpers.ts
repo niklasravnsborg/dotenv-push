@@ -2,7 +2,7 @@
  * Test utilities and helpers for consistent testing patterns
  */
 
-import { vi } from 'bun:test';
+import { mock } from 'bun:test';
 import type {
   MockDotenvParse,
   MockStdin,
@@ -15,9 +15,9 @@ import type {
 export function createMockVercel(): MockVercelConstructor {
   class VercelMock {
     projects = {
-      filterProjectEnvs: vi.fn(async (_args?: unknown) => undefined),
-      removeProjectEnv: vi.fn(async (_args?: unknown) => undefined),
-      createProjectEnv: vi.fn(async (_args?: unknown) => undefined),
+      filterProjectEnvs: mock(async (_args?: unknown) => undefined),
+      removeProjectEnv: mock(async (_args?: unknown) => undefined),
+      createProjectEnv: mock(async (_args?: unknown) => undefined),
     };
     constructor(_config: { bearerToken: string }) {
       /* noop: constructor present to match SDK shape */
@@ -30,7 +30,7 @@ export function createMockVercel(): MockVercelConstructor {
  * Create a mock for dotenv.parse with proper typing
  */
 export function createMockDotenvParse(): MockDotenvParse {
-  return vi.fn() as unknown as MockDotenvParse;
+  return mock() as unknown as MockDotenvParse;
 }
 
 /**
@@ -38,10 +38,10 @@ export function createMockDotenvParse(): MockDotenvParse {
  */
 export function createMockStdin(): MockStdin {
   return {
-    resume: vi.fn(),
-    setEncoding: vi.fn(),
-    on: vi.fn(),
-    pause: vi.fn(),
+    resume: mock(),
+    setEncoding: mock(),
+    on: mock(),
+    pause: mock(),
   };
 }
 
@@ -49,7 +49,7 @@ export function createMockStdin(): MockStdin {
  * Mock process.stdout.write for testing output
  */
 export function mockStdoutWrite() {
-  return vi.fn() as unknown as typeof process.stdout.write;
+  return mock() as unknown as typeof process.stdout.write;
 }
 
 /**

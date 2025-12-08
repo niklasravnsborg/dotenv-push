@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import { parseArgs } from 'node:util';
 import { isSupportedProvider, SUPPORTED_PROVIDERS } from './types/index.js';
 
 // Mock the dependencies
-const mockPushToVercel = vi.fn();
-await vi.module('./providers/vercel.js', () => ({
+const mockPushToVercel = mock();
+await mock.module('./providers/vercel.js', () => ({
   pushToVercel: mockPushToVercel,
 }));
 

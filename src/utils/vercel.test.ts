@@ -1,17 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { prompt } from './input.js';
 import { getProjectIdFromFile, getVercelToken } from './vercel.js';
 
-await vi.module('node:fs', () => ({
-  readFileSync: vi.fn(),
+await mock.module('node:fs', () => ({
+  readFileSync: mock(),
 }));
-await vi.module('./input.js', () => ({
-  prompt: vi.fn(),
+await mock.module('./input.js', () => ({
+  prompt: mock(),
 }));
 
-const mockReadFileSync = readFileSync as unknown as ReturnType<typeof vi.fn>;
-const mockPrompt = prompt as unknown as ReturnType<typeof vi.fn>;
+const mockReadFileSync = readFileSync as unknown as ReturnType<typeof mock>;
+const mockPrompt = prompt as unknown as ReturnType<typeof mock>;
 
 describe('Vercel Utils', () => {
   beforeEach(() => {
