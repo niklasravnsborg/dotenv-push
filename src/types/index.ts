@@ -3,7 +3,7 @@
  */
 
 /** Supported providers for environment variable deployment */
-export const SUPPORTED_PROVIDERS = ['vercel'] as const;
+export const SUPPORTED_PROVIDERS = ['vercel', 'convex'] as const;
 export type Provider = (typeof SUPPORTED_PROVIDERS)[number];
 
 /** CLI command line arguments interface */
@@ -20,6 +20,13 @@ export interface CliArgs {
 export interface VercelPushOptions {
   projectId?: string;
   token?: string;
+  envVars: EnvVars;
+  skipConfirmation: boolean;
+}
+
+/** Options for pushing to Convex */
+export interface ConvexPushOptions {
+  deploymentName?: string;
   envVars: EnvVars;
   skipConfirmation: boolean;
 }
@@ -49,6 +56,13 @@ export class VercelApiError extends DotenvPushError {
   constructor(message: string, cause?: Error) {
     super(message, 'VERCEL_API_ERROR', cause);
     this.name = 'VercelApiError';
+  }
+}
+
+export class ConvexApiError extends DotenvPushError {
+  constructor(message: string, cause?: Error) {
+    super(message, 'CONVEX_API_ERROR', cause);
+    this.name = 'ConvexApiError';
   }
 }
 

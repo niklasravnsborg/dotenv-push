@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { parseArgs } from 'node:util';
+import { pushToConvex } from './providers/convex.js';
 import { pushToVercel } from './providers/vercel.js';
 import { validateCliArgs } from './schemas/index.js';
 import {
@@ -21,9 +22,11 @@ Usage:
 
 Providers:
   vercel    Push to Vercel project
+  convex    Push to Convex deployment
 
 Options:
   -p, --project <id>     Project ID (optional for Vercel, uses .vercel/project.json)
+  -d, --deployment <n>   Deployment name (for Convex, e.g., "production" or project slug)
   -t, --token <token>    Provider token (or use environment variables)
   -e, --env <file>       Environment file (defaults to .env.production)
   -s, --stdin            Read environment variables from stdin
@@ -36,6 +39,8 @@ Examples:
   dotenv-push vercel --env .env.staging --yes
   cat .env | dotenv-push vercel --stdin
   dotenvx decrypt --stdout | dotenv-push vercel --stdin
+  dotenv-push convex
+  dotenv-push convex --deployment my-app-production
 
 Environment Variables:
   VERCEL_TOKEN           Vercel API token
@@ -69,11 +74,12 @@ async function readStdin(): Promise<string> {
  * @returns Validated CLI arguments
  * @throws {ConfigError} When arguments are invalid
  */
-function parseCliArgs(): CliArgs & { stdin: boolean } {
+function parseCliArgs(): CliArgs & { stdin: boolean; deployment?: string } {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
     options: {
       project: { type: 'string', short: 'p' },
+      deployment: { type: 'string', short: 'd' },
       token: { type: 'string', short: 't' },
       env: { type: 'string', short: 'e', default: '.env.production' },
       stdin: { type: 'boolean', short: 's', default: false },
@@ -103,6 +109,7 @@ function parseCliArgs(): CliArgs & { stdin: boolean } {
   const rawArgs = {
     provider: providerInput,
     project: values.project,
+    deployment: values.deployment,
     token: values.token,
     env: values.env ?? '.env.production',
     stdin: values.stdin ?? false,
@@ -116,6 +123,7 @@ function parseCliArgs(): CliArgs & { stdin: boolean } {
   return {
     ...validatedArgs,
     stdin: rawArgs.stdin,
+    deployment: rawArgs.deployment,
   };
 }
 
@@ -147,6 +155,13 @@ async function main(): Promise<void> {
         await pushToVercel({
           projectId: args.project,
           token: args.token,
+          envVars,
+          skipConfirmation: args.yes,
+        });
+        break;
+      case 'convex':
+        await pushToConvex({
+          deploymentName: args.deployment,
           envVars,
           skipConfirmation: args.yes,
         });
