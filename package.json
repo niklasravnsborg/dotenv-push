@@ -15,7 +15,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/niklasravnsborg/dotenv-push.git"
+    "url": "git+https://github.com/niklasravnsborg/dotenv-push.git"
   },
   "main": "dist/index.js",
   "type": "module",
@@ -23,7 +23,7 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "dotenv-push": "./dist/index.js"
+    "dotenv-push": "dist/index.js"
   },
   "scripts": {
     "build": "bun build ./src/index.ts --outdir=dist --target=bun --format=esm --banner:js=\"#!/usr/bin/env node\"",
