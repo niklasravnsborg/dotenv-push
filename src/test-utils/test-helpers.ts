@@ -2,12 +2,32 @@
  * Test utilities and helpers for consistent testing patterns
  */
 
-import { mock } from 'bun:test';
-import type {
-  MockDotenvParse,
-  MockStdin,
-  MockVercelConstructor,
-} from '../types/mocks.js';
+import { type Mock, mock } from 'bun:test';
+import type { EnvVars } from '../types/index.js';
+
+/** Mock implementation of Vercel SDK project methods */
+interface MockVercelProjects {
+  filterProjectEnvs: (args: unknown) => Promise<unknown>;
+  removeProjectEnv: (args: unknown) => Promise<unknown>;
+  createProjectEnv: (args: unknown) => Promise<unknown>;
+}
+
+/** Mock Vercel SDK constructor */
+interface MockVercelConstructor {
+  new (config: {
+    bearerToken: string;
+  }): {
+    projects: MockVercelProjects;
+  };
+}
+
+/** Mock stdin for testing prompts */
+interface MockStdin {
+  resume: () => void;
+  setEncoding: (encoding: string) => void;
+  on: (event: string, callback: (data: string) => void) => void;
+  pause: () => void;
+}
 
 /**
  * Create a properly typed mock for the Vercel SDK
@@ -29,8 +49,8 @@ export function createMockVercel(): MockVercelConstructor {
 /**
  * Create a mock for dotenv.parse with proper typing
  */
-export function createMockDotenvParse(): MockDotenvParse {
-  return mock() as unknown as MockDotenvParse;
+export function createMockDotenvParse(): Mock<(content: string) => EnvVars> {
+  return mock() as unknown as Mock<(content: string) => EnvVars>;
 }
 
 /**
