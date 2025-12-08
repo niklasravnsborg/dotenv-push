@@ -120,6 +120,23 @@ npm run format        # write formatted files
 
 Note: The published CLI remains Node-compatible; dist output is built with Bun and includes a Node shebang so `node` can execute it. Bun is used for local dev, tests, and builds.
 
+### Releasing
+
+To publish a new version to npm, use one of the following commands:
+
+```bash
+# Patch release (0.1.0 → 0.1.1) - for bug fixes
+npm version patch && git push origin main --tags
+
+# Minor release (0.1.0 → 0.2.0) - for new features
+npm version minor && git push origin main --tags
+
+# Major release (0.1.0 → 1.0.0) - for breaking changes
+npm version major && git push origin main --tags
+```
+
+This updates `package.json`, creates a git tag, and pushes it. The GitHub Actions workflow will automatically publish to npm.
+
 ## License
 
 MIT
