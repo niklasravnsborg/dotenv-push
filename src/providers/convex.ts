@@ -1,4 +1,4 @@
-import { $ } from 'bun';
+import { $ } from 'zx';
 import {
   ConfigError,
   ConvexApiError,
@@ -6,9 +6,12 @@ import {
 } from '../types/index.js';
 import { prompt } from '../utils/input.js';
 
+// Suppress zx default verbose output
+$.verbose = false;
+
 /**
  * Deploy environment variables to Convex deployment
- * Uses the Convex CLI via bun shell to manage environment variables
+ * Uses the Convex CLI via zx shell to manage environment variables
  * @param options Configuration for the deployment
  * @throws {ConfigError} When configuration is invalid
  * @throws {ConvexApiError} When Convex CLI calls fail
@@ -29,12 +32,14 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
     // Get current environment variables from Convex
     console.log('Fetching current environment variables from Convex...');
 
-    const listResult = await $`npx convex env list ${deploymentFlag}`
-      .nothrow()
-      .quiet();
-
-    if (listResult.exitCode !== 0) {
-      const stderr = listResult.stderr.toString();
+    let currentEnvOutput: string;
+    try {
+      const listResult = deploymentFlag
+        ? await $`npx convex env list ${deploymentFlag}`
+        : await $`npx convex env list`;
+      currentEnvOutput = listResult.stdout;
+    } catch (error: unknown) {
+      const stderr = error instanceof Error ? error.message : String(error);
       // Check if it's an auth error or other configuration issue
       if (stderr.includes('not logged in') || stderr.includes('auth')) {
         throw new ConfigError(
@@ -50,8 +55,6 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
         `Failed to list environment variables: ${stderr}`
       );
     }
-
-    const currentEnvOutput = listResult.stdout.toString();
     const currentEnvLines = currentEnvOutput
       .split('\n')
       .filter((line: string) => line.includes('='));
@@ -102,30 +105,33 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
     // This ensures required vars are updated before any removals
     console.log('Setting environment variables...');
     for (const [key, value] of Object.entries(envVars)) {
-      const setResult =
-        await $`npx convex env set ${key} ${value} ${deploymentFlag}`
-          .nothrow()
-          .quiet();
-
-      if (setResult.exitCode !== 0) {
-        const stderr = setResult.stderr.toString();
+      try {
+        if (deploymentFlag) {
+          await $`npx convex env set ${key} ${value} ${deploymentFlag}`;
+        } else {
+          await $`npx convex env set ${key} ${value}`;
+        }
+        const action = currentEnvKeys.has(key) ? 'Updated' : 'Created';
+        console.log(`${action} ${key}`);
+      } catch (error: unknown) {
+        const stderr = error instanceof Error ? error.message : String(error);
         throw new ConvexApiError(`Failed to set ${key}: ${stderr}`);
       }
-      const action = currentEnvKeys.has(key) ? 'Updated' : 'Created';
-      console.log(`${action} ${key}`);
     }
 
     // Then, remove variables that are no longer needed
     if (keysToRemove.length > 0) {
       console.log('Removing old environment variables...');
       for (const key of keysToRemove) {
-        const removeResult =
-          await $`npx convex env remove ${key} ${deploymentFlag}`
-            .nothrow()
-            .quiet();
-
-        if (removeResult.exitCode !== 0) {
-          const stderr = removeResult.stderr.toString();
+        try {
+          if (deploymentFlag) {
+            await $`npx convex env remove ${key} ${deploymentFlag}`;
+          } else {
+            await $`npx convex env remove ${key}`;
+          }
+          console.log(`Removed ${key}`);
+        } catch (error: unknown) {
+          const stderr = error instanceof Error ? error.message : String(error);
           // Check if this is a required env var error
           if (stderr.includes('is used in') || stderr.includes('config file')) {
             console.warn(
@@ -134,8 +140,6 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
           } else {
             console.warn(`Warning: Failed to remove ${key}: ${stderr}`);
           }
-        } else {
-          console.log(`Removed ${key}`);
         }
       }
     }
