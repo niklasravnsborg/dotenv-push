@@ -11,6 +11,7 @@ export const CliArgsSchema = z.object({
   project: z.string().optional(),
   token: z.string().optional(),
   env: z.string().default('.env.production'),
+  target: z.string().default('production'),
   yes: z.boolean().default(false),
   help: z.boolean().default(false),
 });

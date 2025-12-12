@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, mock, vi } from 'bun:test';
 import { parseArgs } from 'node:util';
+import { validateCliArgs } from './schemas/index.js';
 import { isSupportedProvider, SUPPORTED_PROVIDERS } from './types/index.js';
 
 // Mock the dependencies
@@ -84,6 +85,53 @@ describe('CLI Argument Parsing', () => {
       expect(values.token).toBe('token');
       expect(values.env).toBe('.env.test');
       expect(values.yes).toBe(true);
+    });
+
+    it('should parse target for Vercel', () => {
+      const result = validateCliArgs({
+        provider: 'vercel',
+        env: '.env.production',
+        target: 'development',
+        yes: false,
+        help: false,
+      });
+
+      expect(result.target).toBe('development');
+    });
+
+    it('should accept preview target for Vercel', () => {
+      const result = validateCliArgs({
+        provider: 'vercel',
+        env: '.env.production',
+        target: 'preview',
+        yes: false,
+        help: false,
+      });
+
+      expect(result.target).toBe('preview');
+    });
+
+    it('should keep custom target names as provided', () => {
+      const result = validateCliArgs({
+        provider: 'vercel',
+        env: '.env.production',
+        target: 'feature-branch',
+        yes: false,
+        help: false,
+      });
+
+      expect(result.target).toBe('feature-branch');
+    });
+
+    it('should default target to production when omitted', () => {
+      const result = validateCliArgs({
+        provider: 'vercel',
+        env: '.env.production',
+        yes: false,
+        help: false,
+      });
+
+      expect(result.target).toBe('production');
     });
   });
 

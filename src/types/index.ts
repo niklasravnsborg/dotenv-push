@@ -12,15 +12,24 @@ export interface CliArgs {
   project?: string;
   token?: string;
   env: string;
+  target: VercelEnvironmentTarget;
   yes: boolean;
   help: boolean;
 }
+
+/** Supported Vercel environment targets */
+export type VercelEnvironmentTarget =
+  | 'production'
+  | 'preview'
+  | 'development'
+  | string;
 
 /** Options for pushing to Vercel */
 export interface VercelPushOptions {
   projectId?: string;
   token?: string;
   envVars: EnvVars;
+  target: VercelEnvironmentTarget;
   skipConfirmation: boolean;
 }
 

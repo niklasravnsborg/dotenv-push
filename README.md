@@ -30,6 +30,15 @@ dotenv-push vercel --project abc123 --token your-vercel-token
 # Push different environment file
 dotenv-push vercel --env .env.staging
 
+# Push to Vercel development environment
+dotenv-push vercel --target development --env .env.development
+
+# Push to Vercel preview environment
+dotenv-push vercel --target preview --env .env.preview
+
+# Push to a custom Vercel environment (custom environment name)
+dotenv-push vercel --target staging --env .env.feature
+
 # Skip confirmation prompts
 dotenv-push vercel --yes
 ```
@@ -65,6 +74,7 @@ grep "^NEXT_PUBLIC_" .env | dotenv-push vercel --stdin
 - `-p, --project <id>` - Project ID (optional for Vercel, uses .vercel/project.json)
 - `-t, --token <token>` - Provider API token
 - `-e, --env <file>` - Environment file path (defaults to .env.production)
+- `--target <name>` - Vercel environment target (`production`, `preview`, `development`, or a custom environment name, defaults to `production`)
 - `-s, --stdin` - Read environment variables from stdin
 - `-y, --yes` - Skip confirmation prompts
 - `-h, --help` - Show help message
@@ -80,7 +90,7 @@ grep "^NEXT_PUBLIC_" .env | dotenv-push vercel --stdin
 For Vercel, the tool will:
 
 1. Read project ID from `.vercel/project.json` if not specified
-2. Replace ALL production environment variables with the ones from your file/stdin
+2. Replace ALL environment variables for the selected Vercel environment (default: production) with the ones from your file/stdin. Supports `production`, `preview`, `development`, and custom environment names.
 3. Automatically mark sensitive variables (containing KEY, SECRET, TOKEN) as encrypted
 
 ## Use Cases

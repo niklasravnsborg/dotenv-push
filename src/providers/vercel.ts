@@ -1,5 +1,6 @@
 import { Vercel } from '@vercel/sdk';
 import {
+  CreateProjectEnv11,
   CreateProjectEnv12,
   OneTarget,
 } from '@vercel/sdk/models/createprojectenvop.js';
@@ -12,8 +13,10 @@ import {
 import { prompt } from '../utils/input.js';
 import { getProjectIdFromFile, getVercelToken } from '../utils/vercel.js';
 
+const KNOWN_VERCEL_TARGETS = ['production', 'preview', 'development'] as const;
+
 /**
- * Deploy environment variables to Vercel production environment
+ * Deploy environment variables to a Vercel environment
  * @param options Configuration for the deployment
  * @throws {ConfigError} When configuration is invalid
  * @throws {VercelApiError} When Vercel API calls fail
@@ -46,34 +49,81 @@ export async function pushToVercel(options: VercelPushOptions): Promise<void> {
   try {
     // Use environment variables passed in options
     const envVars = options.envVars;
+    const environmentTarget = options.target;
+    const normalizedTarget = environmentTarget.toLowerCase();
+    const isKnownTarget = KNOWN_VERCEL_TARGETS.includes(
+      normalizedTarget as (typeof KNOWN_VERCEL_TARGETS)[number]
+    );
     if (Object.keys(envVars).length === 0) {
       throw new ConfigError('No environment variables provided');
     }
 
     console.log(`Found ${Object.keys(envVars).length} environment variables`);
 
+    let customEnvironmentId: string | undefined;
+    if (!isKnownTarget) {
+      console.log(
+        `Fetching custom environments for project ${projectId} matching target "${environmentTarget}"...`
+      );
+      const customEnvironments =
+        await vercel.environment.getV9ProjectsIdOrNameCustomEnvironments({
+          idOrName: projectId,
+        });
+
+      const match = (customEnvironments.environments || []).find(
+        env => env.slug?.toLowerCase() === normalizedTarget
+      );
+      customEnvironmentId = match?.id;
+
+      if (!customEnvironmentId) {
+        throw new ConfigError(
+          `Custom environment "${environmentTarget}" not found for project ${projectId}`
+        );
+      }
+
+      console.log(
+        `Using custom environment "${environmentTarget}" with id ${customEnvironmentId}`
+      );
+    }
+
     // Get current environment variables from Vercel
     console.log(
-      `Fetching current environment variables for project ${projectId}...`
+      `Fetching current ${environmentTarget} environment variables for project ${projectId}...`
     );
     const currentEnvs = (await vercel.projects.filterProjectEnvs({
       idOrName: projectId,
     })) as FilterProjectEnvsResponseBody3;
 
-    const productionEnvs = (currentEnvs.envs || []).filter(env =>
-      Array.isArray(env.target)
-        ? env.target.includes('production' as OneTarget)
-        : false
-    );
+    const targetEnvs = (currentEnvs.envs || []).filter(env => {
+      if (isKnownTarget) {
+        if (!Array.isArray(env.target)) {
+          return false;
+        }
+
+        return env.target
+          .map(t => String(t).toLowerCase())
+          .includes(normalizedTarget);
+      }
+
+      if (
+        customEnvironmentId &&
+        Array.isArray(env.customEnvironmentIds) &&
+        env.customEnvironmentIds.includes(customEnvironmentId)
+      ) {
+        return true;
+      }
+
+      return false;
+    });
 
     console.log(
-      `Current production environment variables: ${productionEnvs.length}`
+      `Current ${environmentTarget} environment variables: ${targetEnvs.length}`
     );
 
     // Confirm before proceeding with reset
     if (!options.skipConfirmation) {
       console.log(
-        '\nThis will reset ALL production environment variables for the project.'
+        `\nThis will reset ALL ${environmentTarget} environment variables for the project.`
       );
       console.log('The following variables will be deployed:');
       Object.keys(envVars).forEach(key => {
@@ -89,10 +139,12 @@ export async function pushToVercel(options: VercelPushOptions): Promise<void> {
       }
     }
 
-    // Delete existing production environment variables if any
-    if (productionEnvs.length > 0) {
-      console.log('Deleting existing production environment variables...');
-      for (const env of productionEnvs) {
+    // Delete existing environment variables if any
+    if (targetEnvs.length > 0) {
+      console.log(
+        `Deleting existing ${environmentTarget} environment variables...`
+      );
+      for (const env of targetEnvs) {
         if (env.id) {
           await vercel.projects.removeProjectEnv({
             idOrName: projectId,
@@ -105,15 +157,34 @@ export async function pushToVercel(options: VercelPushOptions): Promise<void> {
 
     // Create new environment variables
     console.log('Deploying new environment variables...');
-    const requestBody = Object.entries(envVars).map(([key, value]) => ({
-      key,
-      value: String(value),
-      target: ['production'] as OneTarget[],
-      type:
-        key.includes('KEY') || key.includes('SECRET') || key.includes('TOKEN')
-          ? 'encrypted'
-          : 'plain',
-    })) as CreateProjectEnv12[];
+    const requestBody = Object.entries(envVars).map<
+      CreateProjectEnv11 | CreateProjectEnv12
+    >(([key, value]) => {
+      const isSecret =
+        key.includes('KEY') || key.includes('SECRET') || key.includes('TOKEN');
+
+      if (isKnownTarget) {
+        return {
+          key,
+          value: String(value),
+          target: [normalizedTarget] as unknown as OneTarget[],
+          type: isSecret ? 'encrypted' : 'plain',
+        } satisfies CreateProjectEnv11;
+      }
+
+      if (!customEnvironmentId) {
+        throw new ConfigError(
+          `Custom environment "${environmentTarget}" not found for project ${projectId}`
+        );
+      }
+
+      return {
+        key,
+        value: String(value),
+        type: isSecret ? 'encrypted' : 'plain',
+        customEnvironmentIds: [customEnvironmentId],
+      } satisfies CreateProjectEnv12;
+    });
 
     const _addResponse = await vercel.projects.createProjectEnv({
       idOrName: projectId,
@@ -122,7 +193,7 @@ export async function pushToVercel(options: VercelPushOptions): Promise<void> {
     });
 
     console.log(
-      'Environment variables successfully deployed to Vercel production environment!'
+      `Environment variables successfully deployed to Vercel ${environmentTarget} environment!`
     );
     console.log(`Total variables deployed: ${Object.keys(envVars).length}`);
   } catch (error) {
