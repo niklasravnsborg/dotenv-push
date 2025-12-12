@@ -1,6 +1,6 @@
 {
   "name": "dotenv-push",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "CLI tool to push environment variables to cloud providers",
   "keywords": [
     "dotenv",
