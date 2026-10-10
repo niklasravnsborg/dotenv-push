@@ -27,6 +27,7 @@ describe('Convex Provider Integration Tests', () => {
   });
 
   describe('Convex Provider', () => {
+    // npx may download the Convex CLI first, which exceeds bun's 5s default
     it('should fail gracefully when not in a Convex project', async () => {
       const result = await runCLIWithStdin(
         ['convex', '--stdin', '--yes'],
@@ -40,7 +41,7 @@ describe('Convex Provider Integration Tests', () => {
           result.stderr.includes('logged in') ||
           result.stderr.includes('Failed')
       ).toBe(true);
-    });
+    }, 15000);
 
     it('should fail gracefully with missing environment file', async () => {
       const result = await runCLI([
