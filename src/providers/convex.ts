@@ -27,6 +27,9 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
   }
 
   console.log(`Found ${Object.keys(envVars).length} environment variables`);
+  console.log(
+    `Target Convex deployment: ${deploymentName ?? 'default (CONVEX_DEPLOYMENT from .env.local)'}`
+  );
 
   // zx expands arrays into separate, individually quoted arguments
   const deploymentArgs = deploymentName ? ['--deployment', deploymentName] : [];

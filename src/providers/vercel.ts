@@ -59,6 +59,7 @@ export async function pushToVercel(options: VercelPushOptions): Promise<void> {
     }
 
     console.log(`Found ${Object.keys(envVars).length} environment variables`);
+    console.log(`Target Vercel environment: ${environmentTarget}`);
 
     let customEnvironmentId: string | undefined;
     if (!isKnownTarget) {
