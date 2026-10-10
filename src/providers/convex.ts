@@ -9,6 +9,9 @@ import { prompt } from '../utils/input.js';
 // Suppress zx default verbose output
 $.verbose = false;
 
+// Silence npm warnings (e.g. about pnpm-specific .npmrc keys) in npx output
+const run = $({ env: { ...process.env, npm_config_loglevel: 'error' } });
+
 /**
  * Deploy environment variables to Convex deployment
  * Uses the Convex CLI via zx shell to manage environment variables
@@ -25,8 +28,8 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
 
   console.log(`Found ${Object.keys(envVars).length} environment variables`);
 
-  // Build deployment flag if specified
-  const deploymentFlag = deploymentName ? `--deployment ${deploymentName}` : '';
+  // zx expands arrays into separate, individually quoted arguments
+  const deploymentArgs = deploymentName ? ['--deployment', deploymentName] : [];
 
   try {
     // Get current environment variables from Convex
@@ -34,9 +37,7 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
 
     let currentEnvOutput: string;
     try {
-      const listResult = deploymentFlag
-        ? await $`npx convex env list ${deploymentFlag}`
-        : await $`npx convex env list`;
+      const listResult = await run`npx convex env list ${deploymentArgs}`;
       currentEnvOutput = listResult.stdout;
     } catch (error: unknown) {
       const stderr = error instanceof Error ? error.message : String(error);
@@ -106,11 +107,7 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
     console.log('Setting environment variables...');
     for (const [key, value] of Object.entries(envVars)) {
       try {
-        if (deploymentFlag) {
-          await $`npx convex env set ${key} ${value} ${deploymentFlag}`;
-        } else {
-          await $`npx convex env set ${key} ${value}`;
-        }
+        await run`npx convex env set ${key} ${value} ${deploymentArgs}`;
         const action = currentEnvKeys.has(key) ? 'Updated' : 'Created';
         console.log(`${action} ${key}`);
       } catch (error: unknown) {
@@ -124,11 +121,7 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
       console.log('Removing old environment variables...');
       for (const key of keysToRemove) {
         try {
-          if (deploymentFlag) {
-            await $`npx convex env remove ${key} ${deploymentFlag}`;
-          } else {
-            await $`npx convex env remove ${key}`;
-          }
+          await run`npx convex env remove ${key} ${deploymentArgs}`;
           console.log(`Removed ${key}`);
         } catch (error: unknown) {
           const stderr = error instanceof Error ? error.message : String(error);
