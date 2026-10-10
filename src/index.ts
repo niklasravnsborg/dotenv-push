@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { parseArgs } from 'node:util';
+import { version } from '../package.json';
 import { pushToConvex } from './providers/convex.js';
 import { pushToVercel } from './providers/vercel.js';
 import { validateCliArgs } from './schemas/index.js';
@@ -35,6 +36,7 @@ Options:
   -s, --stdin            Read environment variables from stdin
   -y, --yes              Skip confirmation prompts
   -h, --help             Show this help message
+  -v, --version          Show the version number
 
 Examples:
   dotenv-push vercel
@@ -103,12 +105,18 @@ function parseCliArgs(): CliArgs & { stdin: boolean; deployment?: string } {
       target: { type: 'string', default: 'production' },
       yes: { type: 'boolean', short: 'y', default: false },
       help: { type: 'boolean', short: 'h', default: false },
+      version: { type: 'boolean', short: 'v', default: false },
     },
     allowPositionals: true,
   });
 
   if (values.help) {
     showHelp();
+    process.exit(0);
+  }
+
+  if (values.version) {
+    console.log(version);
     process.exit(0);
   }
 

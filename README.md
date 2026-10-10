@@ -78,6 +78,7 @@ grep "^NEXT_PUBLIC_" .env | dotenv-push vercel --stdin
 - `-s, --stdin` - Read environment variables from stdin
 - `-y, --yes` - Skip confirmation prompts
 - `-h, --help` - Show help message
+- `-v, --version` - Show the version number
 
 ## Environment Variables
 

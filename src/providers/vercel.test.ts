@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { spawn } from 'child_process';
+import { version } from '../../package.json';
 
 const CLI_PATH = 'src/index.ts';
 
@@ -15,6 +16,13 @@ describe('Full Command Integration Tests', () => {
       expect(result.stdout).toContain('Usage:');
       expect(result.stdout).toContain('vercel');
       expect(result.stdout).toContain('Examples:');
+    });
+
+    it('should print the package version with --version flag', async () => {
+      const result = await runCLI(['--version']);
+
+      expect(result.code).toBe(0);
+      expect(result.stdout.trim()).toBe(version);
     });
   });
 
