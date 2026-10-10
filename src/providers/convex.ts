@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { parse } from 'dotenv';
 import { $ } from 'zx';
 import {
   ConfigError,
@@ -11,6 +13,49 @@ $.verbose = false;
 
 // Silence npm warnings (e.g. about pnpm-specific .npmrc keys) in npx output
 const run = $({ env: { ...process.env, npm_config_loglevel: 'error' } });
+
+/**
+ * Read a variable the way the Convex CLI does: process env first,
+ * then .env.local, then .env
+ */
+function readConvexEnvVar(name: string): string | undefined {
+  if (process.env[name]) {
+    return process.env[name];
+  }
+  for (const file of ['.env.local', '.env']) {
+    const value = existsSync(file)
+      ? parse(readFileSync(file, 'utf-8'))[name]
+      : undefined;
+    if (value) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Ask the Convex CLI which deployment it will target, so aliases like `prod`
+ * and the CONVEX_DEPLOYMENT default resolve to the actual deployment name
+ * @returns The deployment name, or undefined if it can't be resolved
+ */
+async function resolveDeploymentName(
+  deploymentArgs: string[]
+): Promise<string | undefined> {
+  try {
+    const { stdout } =
+      await run`npx convex dashboard --no-open ${deploymentArgs}`;
+    const name = stdout.match(/\/d\/([\w-]+)/)?.[1];
+    if (name) {
+      return name;
+    }
+    // Self-hosted deployments have no name and no cloud dashboard URL
+    const selfHostedUrl = readConvexEnvVar('CONVEX_SELF_HOSTED_URL');
+    return selfHostedUrl && `self-hosted (${selfHostedUrl})`;
+  } catch {
+    // The env list call below reports the actual error
+    return undefined;
+  }
+}
 
 /**
  * Deploy environment variables to Convex deployment
@@ -27,12 +72,14 @@ export async function pushToConvex(options: ConvexPushOptions): Promise<void> {
   }
 
   console.log(`Found ${Object.keys(envVars).length} environment variables`);
-  console.log(
-    `Target Convex deployment: ${deploymentName ?? 'default (CONVEX_DEPLOYMENT from .env.local)'}`
-  );
 
   // zx expands arrays into separate, individually quoted arguments
   const deploymentArgs = deploymentName ? ['--deployment', deploymentName] : [];
+
+  const resolvedName = await resolveDeploymentName(deploymentArgs);
+  console.log(
+    `Target Convex deployment: ${resolvedName ?? deploymentName ?? 'unknown'}`
+  );
 
   try {
     // Get current environment variables from Convex
